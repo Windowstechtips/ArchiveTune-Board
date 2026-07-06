@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, SlidersHorizontal, Inbox } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import IssueCard from '../components/IssueCard'
 import CreateIssueModal from '../components/CreateIssueModal'
@@ -22,24 +23,40 @@ const TYPE_OPTIONS = [
 ]
 
 export default function Board() {
+  const { session } = useAuth()
   const [issues, setIssues] = useState([])
+  const [votedIssueIds, setVotedIssueIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedIssue, setSelectedIssue] = useState(null)
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
 
-  useEffect(() => { fetchIssues() }, [])
+  useEffect(() => { fetchIssues() }, [session])
 
   const fetchIssues = async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data: issuesData, error: issuesError } = await supabase
       .from('issues')
       .select('*')
       .order('upvotes', { ascending: false })
       .order('created_at', { ascending: false })
-    if (error) console.error(error)
-    else setIssues(data || [])
+      
+    if (issuesError) console.error(issuesError)
+    else setIssues(issuesData || [])
+    
+    if (session) {
+      const { data: votesData } = await supabase
+        .from('issue_votes')
+        .select('issue_id')
+        .eq('user_id', session.user.id)
+      if (votesData) {
+        setVotedIssueIds(new Set(votesData.map(v => v.issue_id)))
+      }
+    } else {
+      setVotedIssueIds(new Set())
+    }
+    
     setLoading(false)
   }
 
@@ -47,12 +64,18 @@ export default function Board() {
     setIssues(prev => [newIssue, ...prev])
   }
 
-  const handleVote = (id, newUpvotes) => {
+  const handleVote = (id, newUpvotes, voted) => {
     setIssues(prev =>
       prev
         .map(i => i.id === id ? { ...i, upvotes: newUpvotes } : i)
         .sort((a, b) => b.upvotes - a.upvotes)
     )
+    setVotedIssueIds(prev => {
+      const next = new Set(prev)
+      if (voted) next.add(id)
+      else next.delete(id)
+      return next
+    })
   }
 
   const filtered = issues.filter(i => {
@@ -127,7 +150,13 @@ export default function Board() {
           <motion.div className="cards-grid" layout>
             <AnimatePresence>
               {filtered.map(issue => (
-                <IssueCard key={issue.id} issue={issue} onVote={handleVote} onView={setSelectedIssue} />
+                <IssueCard 
+                  key={issue.id} 
+                  issue={issue} 
+                  hasVoted={votedIssueIds.has(issue.id)}
+                  onVote={handleVote} 
+                  onView={setSelectedIssue} 
+                />
               ))}
             </AnimatePresence>
           </motion.div>

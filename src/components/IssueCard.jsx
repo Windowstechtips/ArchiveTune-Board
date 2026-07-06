@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowBigUp, Bug, Lightbulb, User, Maximize2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../context/AuthContext'
 
 const STATUS_MAP = {
   open:     { label: 'Open',     cls: 'badge-open' },
@@ -10,22 +11,39 @@ const STATUS_MAP = {
   denied:   { label: 'Denied',   cls: 'badge-denied' },
 }
 
-export default function IssueCard({ issue, onVote, onView }) {
+export default function IssueCard({ issue, hasVoted, onVote, onView }) {
+  const { session } = useAuth()
   const [isVoting, setIsVoting] = useState(false)
-  const hasVoted = localStorage.getItem(`voted_${issue.id}`) === 'true'
   const status   = STATUS_MAP[issue.status] || STATUS_MAP.open
 
   const handleVote = async () => {
-    if (isVoting || hasVoted) return
+    if (isVoting) return
+    if (!session) {
+      alert("You must be logged in to upvote.")
+      return
+    }
+
     setIsVoting(true)
-    const newUpvotes = issue.upvotes + 1
-    const { error } = await supabase
-      .from('issues')
-      .update({ upvotes: newUpvotes })
-      .eq('id', issue.id)
-    if (!error) {
-      localStorage.setItem(`voted_${issue.id}`, 'true')
-      onVote(issue.id, newUpvotes)
+    if (hasVoted) {
+      // Remove vote
+      const { error } = await supabase
+        .from('issue_votes')
+        .delete()
+        .eq('issue_id', issue.id)
+        .eq('user_id', session.user.id)
+      
+      if (!error) {
+        onVote(issue.id, issue.upvotes - 1, false)
+      }
+    } else {
+      // Add vote
+      const { error } = await supabase
+        .from('issue_votes')
+        .insert({ issue_id: issue.id, user_id: session.user.id })
+      
+      if (!error) {
+        onVote(issue.id, issue.upvotes + 1, true)
+      }
     }
     setIsVoting(false)
   }
