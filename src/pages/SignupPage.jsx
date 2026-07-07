@@ -88,7 +88,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="form-group">
-              <label className="form-label">Username</label>
+              <label className="form-label">Username <span style={{ color: '#f87171' }}>*</span></label>
               <input
                 type="text"
                 className="input"
@@ -105,7 +105,7 @@ export default function SignupPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email address</label>
+              <label className="form-label">Email address <span style={{ color: '#f87171' }}>*</span></label>
               <input
                 type="email"
                 className="input"
@@ -118,7 +118,7 @@ export default function SignupPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label">Password <span style={{ color: '#f87171' }}>*</span></label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPass ? 'text' : 'password'}
