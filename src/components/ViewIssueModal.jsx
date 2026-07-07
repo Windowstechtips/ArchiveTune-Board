@@ -1,4 +1,4 @@
-import { X, ArrowBigUp, Bug, Lightbulb, User } from 'lucide-react'
+import { X, ArrowBigUp, Bug, Lightbulb, User, MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const STATUS_MAP = {
@@ -46,9 +46,33 @@ export default function ViewIssueModal({ issue, isOpen, onClose }) {
         </div>
 
         <div className="modal-body" style={{ minHeight: '120px' }}>
-          <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
-            {issue.description}
-          </p>
+          <div>
+            <h4 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Description</h4>
+            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
+              {issue.description}
+            </p>
+          </div>
+
+          {issue.steps_to_reproduce && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <h4 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Steps to Reproduce</h4>
+              <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', background: 'var(--bg-base)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-soft)' }}>
+                {issue.steps_to_reproduce}
+              </p>
+            </div>
+          )}
+
+          {issue.contact_method && issue.contact_details && (
+            <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-soft)' }}>
+              <MessageCircle size={16} color="var(--accent-light)" />
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                Contact via <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>{issue.contact_method}</strong>:
+              </span>
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                {issue.contact_details}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

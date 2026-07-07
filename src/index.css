@@ -484,7 +484,13 @@ textarea.input {
   background: var(--accent-dim);
   border-color: rgba(124, 58, 237, 0.35);
   color: var(--accent-light);
-  cursor: default;
+  cursor: pointer;
+}
+
+.upvote-btn.voted:hover {
+  background: rgba(124, 58, 237, 0.25);
+  border-color: rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
 }
 
 .upvote-count {

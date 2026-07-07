@@ -12,6 +12,9 @@ export default function CreateIssueModal({ isOpen, onClose, onCreated }) {
   const [title, setTitle]       = useState('')
   const [description, setDescription] = useState('')
   const [type, setType]         = useState('suggestion')
+  const [stepsToReproduce, setStepsToReproduce] = useState('')
+  const [contactMethod, setContactMethod] = useState('')
+  const [contactDetails, setContactDetails] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError]       = useState(null)
 
@@ -127,6 +130,9 @@ export default function CreateIssueModal({ isOpen, onClose, onCreated }) {
         type,
         user_id:         session.user.id,
         author_username: profile.username,
+        steps_to_reproduce: type === 'bug' ? stepsToReproduce.trim() : null,
+        contact_method:  contactMethod || null,
+        contact_details: contactDetails.trim() || null
       }])
       .select()
 
@@ -136,6 +142,9 @@ export default function CreateIssueModal({ isOpen, onClose, onCreated }) {
       onCreated(data[0])
       setTitle('')
       setDescription('')
+      setStepsToReproduce('')
+      setContactMethod('')
+      setContactDetails('')
       setType('suggestion')
       onClose()
     }
@@ -226,6 +235,44 @@ export default function CreateIssueModal({ isOpen, onClose, onCreated }) {
                 required
                 rows={4}
               />
+            </div>
+
+            {type === 'bug' && (
+              <div className="form-group">
+                <label className="form-label">Steps to Reproduce</label>
+                <textarea
+                  className="input"
+                  placeholder="How can we recreate this bug?..."
+                  value={stepsToReproduce}
+                  onChange={e => setStepsToReproduce(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Contact (Optional)</label>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <input type="radio" name="contact" value="telegram" checked={contactMethod === 'telegram'} onChange={() => setContactMethod('telegram')} /> Telegram
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <input type="radio" name="contact" value="discord" checked={contactMethod === 'discord'} onChange={() => setContactMethod('discord')} /> Discord
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <input type="radio" name="contact" value="" checked={contactMethod === ''} onChange={() => setContactMethod('')} /> None
+                </label>
+              </div>
+              {contactMethod && (
+                <input
+                  type="text"
+                  className="input"
+                  placeholder={`Your ${contactMethod === 'telegram' ? 'Telegram' : 'Discord'} username…`}
+                  value={contactDetails}
+                  onChange={e => setContactDetails(e.target.value)}
+                  required={!!contactMethod}
+                />
+              )}
             </div>
           </div>
 
